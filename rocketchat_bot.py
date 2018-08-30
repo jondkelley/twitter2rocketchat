@@ -153,6 +153,9 @@ class Configuration(object):
         return (self.config['accounts'][accountid]['user'], self.config['accounts'][accountid]['pass'])
 
 def loop():
+    """
+    trigger loop
+    """
     while True:
         """
         one infinite loop
