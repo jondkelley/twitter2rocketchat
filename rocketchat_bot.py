@@ -167,8 +167,7 @@ while True:
     for handle in conf.twitter_handles:
         hindex = conf.twitter_handles.index(handle)
         twitter = TwitterAdapter(handle, 10)
-        content = {}
-        content['tweets'] = twitter.dict
+        feed = twitter.dict
 
         username, password = conf.get_account(hindex)
         url = conf.get_server(hindex)
@@ -180,7 +179,7 @@ while True:
                 }
             )
 
-        for tweet in content['tweets']:
+        for tweet in feed:
             text = tweet['text']
             id = tweet['tweetId']
 
@@ -198,6 +197,5 @@ while True:
                 jindex.add(id)
             else:
                 print("MessageId {} by {} already sent".format(id, handle))
-    # sleep 15 minutes
     print("Sleeping {} seconds".format(conf.interval * 60))
     sleep(conf.interval * 60)
