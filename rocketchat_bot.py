@@ -171,8 +171,8 @@ def loop():
                 )
 
             twitter = TwitterAdapter(handle, 10)
-            feed = twitter.dict
-            for tweet in feed:
+            twit_feed = twitter.dict
+            for tweet in twit_feed:
                 text = tweet['text']
                 id = tweet['tweetId']
 
