@@ -11,20 +11,16 @@ Options:
     -c, --config CONFIG_FILE                 add a certain config file
 """
 import codecs
+from docopt import docopt
+import json
+from rocketchat.api import RocketChatAPI
 import sys
 import subprocess
-import json
 from time import sleep
-from docopt import docopt
-from rocketchat.api import RocketChatAPI
 from twitteradapter import TwitterAdapter, TooManyRequestedTweets
 import yaml
-import types
 
 #args = docopt(__doc__, options_first=True)
-
-ROOM = "GENERAL"
-#api.send_message("it works!", ROOM)
 
 class JsonRemembers(object):
     """
@@ -76,10 +72,10 @@ class JsonRemembers(object):
         with open(self.index_name, 'w') as outfile:
             json.dump(data, outfile)
 
-class UserNotExistInConfigChatUsers(Exception):
-    pass
-
 class BadConfigFile(Exception):
+    """
+    raise when the configuration is not parsable
+    """
     pass
 
 class Configuration(object):
