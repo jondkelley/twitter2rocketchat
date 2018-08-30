@@ -155,40 +155,44 @@ class Configuration(object):
         accountid = int(self.config['twitter_watch'][hindex]['accountId'])
         return (self.config['accounts'][accountid]['user'], self.config['accounts'][accountid]['pass'])
 
-while True:
-    """
-    one infinite loop
-    """
-    conf = Configuration()
-    for handle in conf.twitter_handles:
-        hindex = conf.twitter_handles.index(handle)
-        username, password = conf.get_account(hindex)
-        url = conf.get_server(hindex)
-        chat = RocketChatAPI(
-            settings={
-                'username': username,
-                'password': password,
-                'domain': url
-                }
-            )
+def loop():
+    while True:
+        """
+        one infinite loop
+        """
+        conf = Configuration()
+        for handle in conf.twitter_handles:
+            hindex = conf.twitter_handles.index(handle)
+            username, password = conf.get_account(hindex)
+            url = conf.get_server(hindex)
+            chat = RocketChatAPI(
+                settings={
+                    'username': username,
+                    'password': password,
+                    'domain': url
+                    }
+                )
 
-        twitter = TwitterAdapter(handle, 10)
-        feed = twitter.dict
-        for tweet in feed:
-            text = tweet['text']
-            id = tweet['tweetId']
+            twitter = TwitterAdapter(handle, 10)
+            feed = twitter.dict
+            for tweet in feed:
+                text = tweet['text']
+                id = tweet['tweetId']
 
-            jindex = JsonRemembers(handle)
-            if not jindex.exists(id):
-                print("MessageId {} by {} sent to channels".format(id, handle))
-                for channel in conf.get_rooms(hindex):
-                    try:
-                        chat.send_message(text, channel)
-                    except json.decoder.JSONDecodeError:
-                        print("Could not read server response, bad server url?")
-                jindex.add(id)
-            else:
-                print("MessageId {} by {} already sent".format(id, handle))
+                jindex = JsonRemembers(handle)
+                if not jindex.exists(id):
+                    print("MessageId {} by {} sent to channels".format(id, handle))
+                    for channel in conf.get_rooms(hindex):
+                        try:
+                            chat.send_message(text, channel)
+                        except json.decoder.JSONDecodeError:
+                            print("Could not read server response, bad server url?")
+                    jindex.add(id)
+                else:
+                    print("MessageId {} by {} already sent".format(id, handle))
 
-    print("Sleeping {} seconds".format(conf.interval * 60))
-    sleep(conf.interval * 60)
+        print("Sleeping {} seconds".format(conf.interval * 60))
+        sleep(conf.interval * 60)
+
+if __name__ == '__main__':
+    loop()
