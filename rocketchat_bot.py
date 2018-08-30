@@ -15,7 +15,6 @@ from docopt import docopt
 import json
 from rocketchat.api import RocketChatAPI
 import sys
-import subprocess
 from time import sleep
 from twitteradapter import TwitterAdapter, TooManyRequestedTweets
 import yaml
