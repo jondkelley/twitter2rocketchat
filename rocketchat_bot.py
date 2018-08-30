@@ -14,7 +14,6 @@ import codecs
 from docopt import docopt
 import json
 from rocketchat.api import RocketChatAPI
-import sys
 from time import sleep
 from twitteradapter import TwitterAdapter, TooManyRequestedTweets
 import yaml
