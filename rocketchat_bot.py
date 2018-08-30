@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""Spawns a bot to post to twitter when feeds are updated
+"""Spawns a bot to post to rocketchat when twitter feeds are updated
 Usage:
     twitter_rocketchat_bot   --command [--config CONFIG_FILE]
 Arguments:
