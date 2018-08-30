@@ -1,32 +1,21 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""Spawns a bot to post to rocketchat when twitter feeds are updated
-Usage:
-    twitter_rocketchat_bot [--config CONFIG_FILE]
 
-Arguments:
-    CONFIG_FILE          yaml configuration
-
-Options:
-    -h                                       show this message
-    -c, --config CONFIG_FILE                 add a certain config file
-                                             [default: /etc/rocketchat_tweets.yaml]
-"""
-
-from docopt import docopt
 import json
 from rocketchat.api import RocketChatAPI
 from time import sleep
-from lib.tweet import (TwitterAdapter, TooManyRequestedTweets)
+from twitter_rocketchat_bot.lib.tweet import (TwitterAdapter, TooManyRequestedTweets)
 import yaml
-
-#args = docopt(__doc__, options_first=True)
-
+import logging
+FORMAT = '%(asctime)s - %(levelname)s - %(message)s'
+logging.basicConfig(format=FORMAT)
+logger = logging.getLogger('twitter_rocketchat_bot')
+logger.setLevel(logging.DEBUG)
 class JsonRemembers(object):
     """
     track previous tweets to prevent spamming a channel
     """
-    def __init__(self, handle, dbname="twitter-index.json"):
+    def __init__(self, handle, dbname="/opt/twitter_rocketchat_bot.index"):
         self.twitterhandle = str(handle) # twitter handle
         self.index_name = dbname
 
@@ -61,7 +50,7 @@ class JsonRemembers(object):
             with open(self.index_name) as f:
                 return json.load(f)
         except:
-            print("Error, db does not exist, resetting db")
+            logger.info("Error, db does not exist, resetting db")
             self.save({})
             return self.load()
 
@@ -83,7 +72,7 @@ class Configuration(object):
     parse yaml config
     """
     def __init__(self, config=None):
-        filename = 'config.yaml'
+        filename = 'twitter_rocketchat_bot.conf'
         with open(filename) as f:
             self.config = yaml.load(f)
         self.validate()
@@ -172,7 +161,6 @@ def loop():
         """
         conf = Configuration()
         for handle in conf.twitter_handles:
-            sleep(0.5)
             hindex = conf.twitter_handles.index(handle)
             username, password = conf.get_account(hindex)
             url = conf.get_server(hindex)
@@ -192,18 +180,18 @@ def loop():
 
                 jindex = JsonRemembers(handle)
                 if not jindex.exists(id):
-                    print("MessageId {} by {} sent to channels".format(id, handle))
+                    logger.info("id {} by {} sent".format(id, handle))
                     for channel in conf.get_rooms(hindex):
                         try:
                             text = transform(text)
                             chat.send_message(text, channel)
                         except json.decoder.JSONDecodeError:
-                            print("Could not read server response, bad server url?")
+                            logger.info("Could not read server response, bad server url?")
                     jindex.add(id)
                 else:
-                    print("MessageId {} by {} already sent".format(id, handle))
+                    logger.info("id {} by {} already sent".format(id, handle))
 
-        print("Sleeping {} seconds".format(conf.interval * 60))
+        logger.info("Sleeping {} seconds".format(conf.interval * 60))
         sleep(conf.interval * 60)
 
 if __name__ == '__main__':
