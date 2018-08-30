@@ -1,44 +1,5 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""A tool to fetch limit N number of twitter posts from twitter handle
-
-Usage:
-    twitter_follow --handle HANDLE [--limit NUMBER]
-    twitter_follow -h
-
-Options:
-    -h                                                 show help
-    --handle HANDLE                                    twitter handle to follow
-    --limit NUMBER                                      number of retweets to show
-                                                       [default: 40]
-Dependecies:
-   pip install twitter_scraper
-   pip install docopt
-
-Example:
-   twitter_follow --handle realdonaldtrump --limit 1
-
-Example Output:
-    [
-       {
-          "tweetId": 1034445783876161536,
-          "time": "2018-08-28 10:21:08",
-          "text": "I smile at Senators and others talking about how good free trade ...",
-          "replies": 12940,
-          "retweets": 21697,
-          "likes": 78424,
-          "entries": {
-             "hashtags": [],
-             "urls": [],
-             "photos": [],
-             "videos": []
-          },
-          "timeEpoch": 1535466068,
-          "textLength": 273,
-          "stackId": 13
-       }
-    ]
-"""
 
 from itertools import islice
 from json import dumps
@@ -57,6 +18,7 @@ class TwitterAdapter(object):
     simple adapter class to utilize twitter_scraper and pull out tweets in various forms
     """
     def __init__(self, handle, num_items=40, reverse=True):
+        self.version = 1
         if num_items > 40:
             raise TooManyRequestedTweets("Can't specify more then 40 tweets")
         self.handle = handle
@@ -131,22 +93,8 @@ class TwitterAdapter(object):
         return dumps(self.raw, indent=2)
 
     @property
-    def limit(self):
+    def latest(self):
         """
-        returns twitter stream limit object as dictionary
+        returns twitter stream last tweet
         """
         return self.raw[0]
-
-def main():
-    """parse first arguement to call specific functions"""
-
-    #args = docopt(__doc__, version='0.0.0', options_first=True)
-
-    handle = args.get('--handle')
-    limit = int(args.get('--limit'))
-    twitter = TwitterAdapter(handle=handle, num_items=limit)
-    print(twitter.json)
-
-if __name__ == '__main__':
-    from docopt import docopt
-    main()

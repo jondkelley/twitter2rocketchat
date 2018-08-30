@@ -1,0 +1,37 @@
+
+accounts:
+  - id: 0
+    user: realdonaldtrump
+    pass: changeme
+  - id: 1
+    user: nasa
+    pass: changeme
+  - id: 2
+    user: chswx
+    pass: changeme
+
+rooms:
+  - id: 0
+    name: general
+  - id: 1
+    name: test
+
+servers:
+  - id: 0
+    url: https://example.com
+
+twitter_watch:
+  - handle: realdonaldtrump
+    accountId: 0
+    serverId: 0
+    roomId: [0]
+  - handle: nasa
+    accountId: 1
+    serverId: 0
+    roomId: [0]
+  - handle: chswx
+    accountId: 2
+    serverId: 0
+    roomId: [1]
+
+read_interval: 1
