@@ -10,7 +10,6 @@ Options:
     -h                                       show this message
     -c, --config CONFIG_FILE                 add a certain config file
 """
-import codecs
 from docopt import docopt
 import json
 from rocketchat.api import RocketChatAPI
