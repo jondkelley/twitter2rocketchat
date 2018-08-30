@@ -2,13 +2,14 @@
 # -*- coding: utf-8 -*-
 """Spawns a bot to post to rocketchat when twitter feeds are updated
 Usage:
-    twitter_rocketchat_bot   --command [--config CONFIG_FILE]
+    rocketchat_tweets.py [--config CONFIG_FILE]
 Arguments:
     CONFIG_FILE          yaml configuration
 
 Options:
     -h                                       show this message
     -c, --config CONFIG_FILE                 add a certain config file
+                                             [default: /etc/rocketchat_tweets.yaml]
 """
 from docopt import docopt
 import json
@@ -162,6 +163,7 @@ def loop():
         """
         conf = Configuration()
         for handle in conf.twitter_handles:
+            sleep(0.5)
             hindex = conf.twitter_handles.index(handle)
             username, password = conf.get_account(hindex)
             url = conf.get_server(hindex)
