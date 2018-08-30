@@ -180,10 +180,7 @@ while True:
 
             jindex = JsonRemembers(handle)
             if not jindex.exists(id):
-                try:
-                    print("MessageId {} by {} sent to channels".format(id, handle))
-                except:
-                    pass
+                print("MessageId {} by {} sent to channels".format(id, handle))
                 for channel in conf.get_rooms(hindex):
                     try:
                         chat.send_message(text, channel)
