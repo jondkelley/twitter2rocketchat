@@ -1,0 +1,21 @@
+
+accounts:
+  - id: 0
+    user: realdonaldtrump
+    pass: changeme
+
+rooms:
+  - id: 0
+    name: general
+
+servers:
+  - id: 0
+    url: https://example.com
+
+twitter_watch:
+  - handle: realdonaldtrump
+    accountId: 0
+    serverId: 0
+    roomId: [0]
+
+read_interval: 1

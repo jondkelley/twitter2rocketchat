@@ -18,13 +18,15 @@ from time import sleep
 from docopt import docopt
 from rocketchat.api import RocketChatAPI
 from twitteradapter import TwitterAdapter, TooManyRequestedTweets
+import yaml
+import types
 
 #args = docopt(__doc__, options_first=True)
 
 ROOM = "GENERAL"
 #api.send_message("it works!", ROOM)
 
-class JsonDb(object):
+class JsonRemembers(object):
     """
     track previous tweets to prevent spamming a channel
     """
@@ -74,32 +76,128 @@ class JsonDb(object):
         with open(self.index_name, 'w') as outfile:
             json.dump(data, outfile)
 
+class UserNotExistInConfigChatUsers(Exception):
+    pass
+
+class BadConfigFile(Exception):
+    pass
+
+class Configuration(object):
+    """
+    parse yaml config
+    """
+    def __init__(self, config=None):
+        filename = 'config.yaml'
+        with open(filename) as f:
+            self.config = yaml.load(f)
+        self.validate()
+
+    def validate(self):
+        """
+        validates configuration format as best as we can
+        """
+        # read_interval
+        try:
+            self.config['read_interval']
+        except:
+            raise BadConfigFile("{}: missing value read_interval".format(filename))
+            exit(1)
+        if type(self.config['read_interval']) is not int:
+            raise BadConfigFile("{}: read_interval must be int()".format(filename))
+            exit(1)
+        # at least 1 server
+        # at least 1 room
+        # at least 1 account
+        # validate all id fields are integers
+        # server
+        # room
+        # account
+
+    @property
+    def interval(self):
+        """
+        return list of twitter handles
+        """
+        return self.config['read_interval']
+
+    @property
+    def twitter_handles(self):
+        """
+        return list of twitter handles
+        """
+        handles = []
+        for handle in self.config['twitter_watch']:
+            handles.append(handle['handle'])
+        return handles
+
+    def get_rooms(self, hindex):
+        """
+        return list of room names for handle
+        """
+        roomids = self.config['twitter_watch'][hindex]['roomId']
+        if type(roomids) is list:
+            pass
+        else:
+            roomids = roomids.split(',')
+        rooms = []
+        for roomid in roomids:
+            room = self.config['rooms'][roomid]['name']
+            rooms.append(room)
+        return rooms
+
+    def get_server(self, hindex):
+        """
+        return list of servers for handle
+        """
+        serverid = self.config['twitter_watch'][hindex]['serverId']
+        return self.config['servers'][serverid]['url']
+
+    def get_account(self, hindex):
+        """
+        return list of account creds for handle
+        """
+        accountid = int(self.config['twitter_watch'][hindex]['accountId'])
+        return (self.config['accounts'][accountid]['user'], self.config['accounts'][accountid]['pass'])
+
 while True:
     """
     one infinite loop
     """
+    conf = Configuration()
+    for handle in conf.twitter_handles:
+        hindex = conf.twitter_handles.index(handle)
+        twitter = TwitterAdapter(handle, 10)
+        content = {}
+        content['tweets'] = twitter.dict
 
-    handle = 'realdonaldtrump'
-    twitter = TwitterAdapter(handle, 20)
-    content = {}
-    content['tweets'] = twitter.dict
+        username, password = conf.get_account(hindex)
+        url = conf.get_server(hindex)
+        chat = RocketChatAPI(
+            settings={
+                'username': username,
+                'password': password,
+                'domain': url
+                }
+            )
 
-    api = RocketChatAPI(settings={'username': 'xx', 'password': 'xx',
-                                  'domain': 'xx'})
+        for tweet in content['tweets']:
+            text = tweet['text']
+            id = tweet['tweetId']
 
-    for tweet in content['tweets']:
-        text = tweet['text']
-        id = tweet['tweetId']
-
-        tindex = JsonDb(handle)
-        if not tindex.exists(id):
-            try:
-                print("New message {} by {}: {}".format(id, handle, text))
-            except:
-                pass
-            api.send_message(text, ROOM)
-            tindex.add(id)
-        else:
-            print("Message {} by {} already indexed".format(id, handle))
+            jindex = JsonRemembers(handle)
+            if not jindex.exists(id):
+                try:
+                    print("MessageId {} by {} sent to channels".format(id, handle))
+                except:
+                    pass
+                for channel in conf.get_rooms(hindex):
+                    try:
+                        chat.send_message(text, channel)
+                    except json.decoder.JSONDecodeError:
+                        print("Could not read server response, bad server url?")
+                jindex.add(id)
+            else:
+                print("MessageId {} by {} already sent".format(id, handle))
     # sleep 15 minutes
-    sleep(900)
+    print("Sleeping {} seconds".format(conf.interval * 60))
+    sleep(conf.interval * 60)
